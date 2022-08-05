@@ -1,20 +1,47 @@
 use std::{time::*, fmt::{Display}};
 use clap::Parser;
 
-const CHARACTERS: [&[&str]; 11] = [
-                                &["███", "█ █", "█ █", "█ █", "███"],   // 0                                
-                                &["  █", "  █", "  █", "  █", "  █"],   // 1  
-                                &["███", "  █", "███", "█  ", "███"],   // 2
-                                &["███", "  █", "███", "  █", "███"],   // 3
-                                &["█ █", "█ █", "███", "  █", "  █"],   // 4
-                                &["███", "█  ", "███", "  █", "███"],   // 5
-                                &["███", "█  ", "███", "█ █", "███"],   // 6
-                                &["███", "  █", "  █", "  █", "  █"],   // 7
-                                &["███", "█ █", "███", "█ █", "███"],   // 8
-                                &["███", "█ █", "███", "  █", "███"],   // 9
-                                &[" ", "█", " ", "█", " "]              // :
-                            ];
-
+const CHARACTERS: [[&[&str]; 11]; 3] = [
+[
+    &["███", "█ █", "█ █", "█ █", "███"],   // 0                                
+    &[" █ ", "██ ", " █ ", " █ ", "███"],   // 1  
+    &["███", "  █", "███", "█  ", "███"],   // 2
+    &["███", "  █", "███", "  █", "███"],   // 3
+    &["█ █", "█ █", "███", "  █", "  █"],   // 4
+    &["███", "█  ", "███", "  █", "███"],   // 5
+    &["███", "█  ", "███", "█ █", "███"],   // 6
+    &["███", "  █", "  █", "  █", "  █"],   // 7
+    &["███", "█ █", "███", "█ █", "███"],   // 8
+    &["███", "█ █", "███", "  █", "███"],   // 9
+    &[" ", "█", " ", "█", " "]              // :
+],
+[
+    &[r"   ___   ", r"  / _ \  ", r" | | | | ", r" | | | | ", r" | |_| | ", r"  \___/  "],
+    &[r"  __     ", r" /_ |    ", r"  | |    ", r"  | |    ", r"  | |    ", r"  |_|    "],
+    &[r"  ___    ", r" |__ \   ", r"    ) |  ", r"   / /   ", r"  / /_   ", r" |____|  "],
+    &[r"  ____   ", r" |___ \  ", r"   __) | ", r"  |__ <  ", r"  ___) | ", r" |____/  "],
+    &[r"  _  _   ", r" | || |  ", r" | || |_ ", r" |__   _|", r"    | |  ", r"    |_|  "],
+    &[r"  _____  ", r" | ____| ", r" | |__   ", r" |___ \  ", r"  ___) | ", r" |____/  "],
+    &[r"    __   ", r"   / /   ", r"  / /_   ", r" | '_ \  ", r" | (_) | ", r"  \___/  "],
+    &[r"  ______ ", r" |____  |", r"     / / ", r"    / /  ", r"   / /   ", r"  /_/    "],
+    &[r"   ___   ", r"  / _ \  ", r" | (_) | ", r"  > _ <  ", r" | (_) | ", r"  \___/  "],
+    &[r"   ___   ", r"  / _ \  ", r" | (_) | ", r"  \__, | ", r"    / /  ", r"   /_/   "],
+    &[r"         ", r"  _      ", r" (_)     ", r"         ", r"  _      ", r" (_)     "]
+],
+[
+    &["╭─────╮", "│ ╭─╮ │", "│ │ │ │", "│ │ │ │", "│ ╰─╯ │", "╰─────╯"],
+    &["  ╭─╮  ", "╭─╯ │  ", "╰─╮ │  ", "  │ │  ", "╭─╯ ╰─╮", "╰─────╯"],
+    &["╭─────╮", "╰───╮ │", "╭───╯ │", "│ ╭───╯", "│ ╰───╮", "╰─────╯"],
+    &["╭─────╮", "╰───╮ │", "╭───╯ │", "╰───╮ │", "╭───╯ │", "╰─────╯"],
+    &["╭─╮ ╭─╮", "│ │ │ │", "│ ╰─╯ │", "╰───╮ │", "    │ │", "    ╰─╯"],
+    &["╭─────╮", "│ ╭───╯", "│ ╰───╮", "╰───╮ │", "╭───╯ │", "╰─────╯"],
+    &["╭─────╮", "│ ╭───╯", "│ ╰───╮", "│ ╭─╮ │", "│ ╰─╯ │", "╰─────╯"],
+    &["╭─────╮", "╰───╮ │", "    │ │", "    │ │", "    │ │", "    ╰─╯"],
+    &["╭─────╮", "│ ╭─╮ │", "│ ╰─╯ │", "│ ╭─╮ │", "│ ╰─╯ │", "╰─────╯"],
+    &["╭─────╮", "│ ╭─╮ │", "│ ╰─╯ │", "╰───╮ │", "╭───╯ │", "╰─────╯"],
+    &["       ", "  ╭─╮  ", "  ╰─╯  ", "  ╭─╮  ", "  ╰─╯  ", "       "]
+]
+];
 struct Time {
     seconds: i8,
     minutes: i8,
@@ -36,7 +63,11 @@ struct Args {
 
     /// Should the clock be centered
     #[clap(short, long)]
-    center: bool
+    center: bool,
+
+    /// Which font to use
+    #[clap(short, long, value_parser, default_value_t = 0)]
+    font: usize
 }
 
 fn get_current_time(timezone: i8) -> Time {
@@ -57,47 +88,50 @@ fn get_current_time(timezone: i8) -> Time {
     }
 }
 
-fn generate_digit_art(number: i8) -> [String; 5] {
+fn generate_digit_art(number: i8, font: usize) -> Vec<String> {
     assert!((0i8..10i8).contains(&number), "Decimal digit not in 0..10");
-    
-    let mut out: [String; 5] = ["".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(), "".to_owned()];
-    
-    let number_art = CHARACTERS.get((number % 10).try_into().unwrap_or(0usize)).unwrap();
-    
-    for i in 0..out.len() {
-        let number_art_string = String::from(*(*number_art).get(i).unwrap()).clone();
 
-        out.get_mut(i).unwrap().clone_from(&number_art_string);
+    let mut out: Vec<String> = Vec::with_capacity(CHARACTERS[font][0].len()); 
+
+    let number_art = CHARACTERS[font].get((number % 10).try_into().unwrap_or(0usize)).unwrap();
+    
+    for i in 0..out.capacity() {
+        let number_art_string = String::from(*(*number_art).get(i).unwrap_or(&"")).clone();
+
+        out.push(number_art_string);
     }
 
     out
 }
 
-fn print_time_art(time: Time, center: bool) -> () {
+fn print_time_art(time: Time, center: bool, font: usize) -> () {
+    assert!(font < CHARACTERS.len(), "Unknown character set");
+
     let temp = format!("{:02}", time.hours);
     
-    let mut out: Vec<String> = vec!["".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(), "".to_owned()];  
+    let mut out: Vec<String> = vec![];
+    out.resize(CHARACTERS[font][0].len(), "".to_owned());  
 
     for c in temp.chars() {
-        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap());  
+        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap(), font);
         out = out.iter().zip(t.iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
     }
 
-    out = out.iter().zip(CHARACTERS.get(10).unwrap().iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
+    out = out.iter().zip(CHARACTERS[font].get(10).unwrap().iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
 
     let temp = format!("{:02}", time.minutes);
 
     for c in temp.chars() {
-        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap());  
+        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap(), font);  
         out = out.iter().zip(t.iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
     }
 
-    out = out.iter().zip(CHARACTERS.get(10).unwrap().iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
+    out = out.iter().zip(CHARACTERS[font].get(10).unwrap().iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
 
     let temp = format!("{:02}", time.seconds);
 
     for c in temp.chars() {
-        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap());  
+        let t = generate_digit_art(i8::try_from(c.to_digit(10).unwrap_or(0)).unwrap(), font);  
         out = out.iter().zip(t.iter()).map(|(x, y)| format!("{} {}", x, y)).collect();
     }
 
@@ -143,7 +177,7 @@ fn main() {
     loop {
         let time = get_current_time(args.timezone);
         print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        print_time_art(time, args.center);
+        print_time_art(time, args.center, args.font);
         std::thread::sleep(Duration::from_secs(1));
     }
 }
