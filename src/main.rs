@@ -128,10 +128,16 @@ fn print_time_art(time: Time, center: bool) -> () {
 }
 
 fn main() {
+    let _ = ctrlc::set_handler(move || {
+        print!("{esc}[?25h", esc = 27 as char);
+        std::process::exit(0);
+    });
+
     let args = Args::parse(); 
 
     let now = SystemTime::UNIX_EPOCH;
 
+    print!("{esc}[?25l", esc = 27 as char);
     std::thread::sleep(Duration::from_millis((now.elapsed().unwrap().as_millis() % 1000).try_into().unwrap()));
 
     loop {
