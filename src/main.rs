@@ -1,4 +1,4 @@
-use std::{time::*, fmt::{Display}, io::Write};
+use std::{time::*, fmt::{Display}, io::{Write, BufWriter}};
 use clap::Parser;
 
 const CHARACTERS: [[&[&str]; 11]; 3] = [
@@ -104,7 +104,7 @@ fn generate_digit_art(number: i8, font: usize) -> Vec<String> {
     out
 }
 
-fn print_time_art(time: Time, center: bool, font: usize) -> () {
+fn print_time_art(time: &Time, center: bool, font: usize) -> () {
     assert!(font < CHARACTERS.len(), "Unknown character set");
 
     let temp = format!("{:02}", time.hours);
@@ -150,9 +150,9 @@ fn print_time_art(time: Time, center: bool, font: usize) -> () {
             final_out += format!("{}\n", s).as_str();
         }
     }
-
-    let _ = std::io::stdout().write_all(final_out.as_bytes());
-    let _ = std::io::stdout().flush();
+   
+    let mut writer = BufWriter::new(std::io::stdout());
+    let _ = writer.write_all(final_out.as_bytes());
 }
 
 fn main() {
@@ -160,18 +160,21 @@ fn main() {
         print!("{esc}[?25h", esc = 27 as char);
         std::process::exit(0);
     });
-
+    
     let args = Args::parse(); 
 
-    let now = SystemTime::UNIX_EPOCH;
+    print!("{esc}[?25l{esc}[2J{esc}[1;1H", esc = 27 as char);
 
-    print!("{esc}[?25l", esc = 27 as char);
-    std::thread::sleep(Duration::from_millis((now.elapsed().unwrap().as_millis() % 1000).try_into().unwrap()));
-
+    let mut old_seconds = 0;
     loop {
         let time = get_current_time(args.timezone);
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        print_time_art(time, args.center, args.font);
-        std::thread::sleep(Duration::from_secs(1));
+        
+        if time.seconds != old_seconds {
+            print!("{esc}[1;1H", esc = 27 as char);
+            print_time_art(&time, args.center, args.font);
+        }
+
+        old_seconds = time.seconds; 
+        std::thread::sleep(Duration::from_millis(50));
     }
 }
