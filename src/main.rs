@@ -1,4 +1,4 @@
-use std::{time::*, fmt::{Display}};
+use std::{time::*, fmt::{Display}, io::Write};
 use clap::Parser;
 
 const CHARACTERS: [[&[&str]; 11]; 3] = [
@@ -136,28 +136,23 @@ fn print_time_art(time: Time, center: bool, font: usize) -> () {
     }
 
     let length = out.get(0).unwrap().chars().count();
-
+    let mut final_out = String::new();
     if center == true {
         let term_size = termsize::get().unwrap();        
-
-        let mut final_out = String::new();
 
         final_out += "\n".repeat((term_size.rows / 2 - u16::try_from(out.len() / 2).unwrap()).try_into().unwrap()).as_str();
        
         for s in out {
             final_out += format!("{:>x$}\n", s, x = (term_size.cols / 2 + u16::try_from(length / 2).unwrap()).try_into().unwrap()).as_str();
         }
-        
-        print!("{}", final_out);
     } else {
-        let mut final_out = String::new();
         for s in out {
             final_out += format!("{}\n", s).as_str();
         }
-        
-        print!("{}", final_out);
     }
-        
+
+    let _ = std::io::stdout().write_all(final_out.as_bytes());
+    let _ = std::io::stdout().flush();
 }
 
 fn main() {
