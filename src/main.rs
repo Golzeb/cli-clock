@@ -142,8 +142,7 @@ fn print_time_art(time: Time, center: bool, font: usize) -> () {
 
         let mut final_out = String::new();
 
-        // -2 is a magic number half of font size floored
-        final_out += "\n".repeat((term_size.rows / 2 - 2).try_into().unwrap()).as_str();
+        final_out += "\n".repeat((term_size.rows / 2 - u16::try_from(out.len() / 2).unwrap()).try_into().unwrap()).as_str();
        
         for s in out {
             final_out += format!("{:>x$}\n", s, x = (term_size.cols / 2 + u16::try_from(length / 2).unwrap()).try_into().unwrap()).as_str();
